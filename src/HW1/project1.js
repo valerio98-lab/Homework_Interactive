@@ -52,36 +52,3 @@ function composite(bgImg, fgImg, fgOpac, fgPos) {
 }
 
 
-// function VectorToMatrix(image){
-//     var {data, width, height} = image;
-//     var matrix = [];
-
-//     for (let i = 0; i < height; i++){
-//         var row = [];
-//         for (let j = 0; j < width; j++){
-//             var index = (i * width + j) * 4;
-//             row.push([data[index], data[index + 1], data[index + 2], data[index + 3] / 255]);
-//         }
-//         matrix.push(row);
-//     }
-
-//     return matrix;
-// }
-
-// function MatrixToVector(matrix, image){
-//     var {data, width, height} = image;
-
-//     for (let i = 0; i < height; i++){
-//         for (let j=0; j<width; j++){
-//             var index = (i * width + j) * 4;
-//             var p = matrix[i][j];
-            
-//             data[index] = p[0];
-//             data[index + 1] = p[1];
-//             data[index + 2] = p[2];
-//             data[index + 3] = p[3] * 255;
-//         }
-//     }
-
-//     return image;
-// }
