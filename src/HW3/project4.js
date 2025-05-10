@@ -15,8 +15,8 @@ function GetModelViewProjection( projectionMatrix, translationX, translationY, t
 
 	var rot_x = [
 		1, 0, 0, 0,
-		0, Math.cos(rotationX), Math.sin(rotationX), 0,
-		0, -Math.sin(rotationX), Math.cos(rotationX), 0,
+		0, Math.cos(rotationX), -Math.sin(rotationX), 0,
+		0, Math.sin(rotationX), Math.cos(rotationX), 0,
 		0, 0, 0, 1
 	];
 
@@ -44,7 +44,7 @@ class MeshDrawer
 		this.prog = InitShaderProgram(this.vertex_shader, this.fragment_shader);
         gl.useProgram(this.prog);
 
-        this.swap_YZ = gl.getUniformLocation(this.prog, 'flip_YZ');
+        this.swap_YZ = gl.getUniformLocation(this.prog, 'swap_YZ');
         this.show_texture = gl.getUniformLocation(this.prog, 'show_texture');
 			
 		gl.uniform1i(this.swap_YZ, document.getElementById('swap-yz').checked ? 1 : 0);
@@ -159,54 +159,43 @@ class MeshDrawer
 
 			}
 	}
-    
-   vertex_shader = `
-        uniform int flip_YZ;
-        uniform bool show_texture;
-        uniform mat4 mvp;
 
-        attribute vec2 texture_coordinates;
-        attribute vec3 vertex;
+vertex_shader = `
+    uniform int  swap_YZ;
+    uniform bool show_texture; 
+    uniform mat4 mvp;
 
-        varying vec2 uv_coordinate;
+    attribute vec2 texture_coordinates;
+    attribute vec3 vertex;
 
-        void main()
-        {
-            // Convert to vec4
-            vec4 v = vec4(vertex, 1.0);
-            // Flip the Y & Z coordinates if necessary
-            if(flip_YZ == 1) { v = vec4(v.x, v.z, v.y, v.w); }
+    varying vec2 v_uv;
 
-            // Move into the canonical view space
-            gl_Position = mvp * v;
-
-            // If we're displaying a texture then pass the texture coordinates to the fragment shader
-            if(show_texture) { uv_coordinate = texture_coordinates; }
+    void main() {
+        vec4 v = vec4(vertex, 1.0);
+        if (swap_YZ == 1) {         
+            v = vec4(v.x, v.z, v.y, v.w);
         }
-    `;
-    
-   fragment_shader = `
-        precision highp int;
-        precision highp float;
+        v_uv = texture_coordinates;  
+        gl_Position = mvp * v;
+    }
+`;
 
-        uniform bool show_texture;
-        uniform sampler2D texture;
 
-        varying vec2 uv_coordinate;
+fragment_shader = `
+    precision mediump float;
 
-        void main()
-        {
-            vec4 color;
-            if(show_texture) { color = texture2D(texture, uv_coordinate); }
-            else { // Show a color with some depth information to make it more interesting
-              float ndc_depth  = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near);
-              float clip_depth = ndc_depth / gl_FragCoord.w;
-              float c          = (clip_depth * 0.5) + 0.5;
+    uniform bool show_texture;
+    uniform sampler2D texture;
 
-              color = vec4(c*c*c, 0.0, c*c*c, 1.0);
-            }
+    varying vec2 v_uv;
 
-            gl_FragColor = color;
+    void main() {
+        if (show_texture) {
+            gl_FragColor = texture2D(texture, v_uv);
+        } else {
+            gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);  
         }
-    `;
+    }
+`;
+
 }
